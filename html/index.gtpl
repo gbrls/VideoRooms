@@ -15,10 +15,11 @@
             mediaPlayer = document.getElementById('media-video');
             mediaPlayer.controls = true;
 
-            //mediaPlayer.play();
             //syncVideo();
 
             setSocket();
+            mediaPlayer.play();
+
         }
 
         function setSocket() {
@@ -40,6 +41,8 @@
                 latestTime = evt.data;
                 console.log(latestTime);
                 mediaPlayer.currentTime = parseFloat(latestTime);
+
+                //syncVideo();
             }
         }
 
