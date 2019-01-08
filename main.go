@@ -1,5 +1,7 @@
 package main
 
+// Gabriel Schneider - 2019
+
 import (
 	"fmt"
 	"html/template"
