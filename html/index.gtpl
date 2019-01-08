@@ -11,9 +11,31 @@
         var webSocket;
         var latestTime;
 
+        //var date;
+        //date = new Date();
+
         function initialiseMediaPlayer() {
             mediaPlayer = document.getElementById('media-video');
             mediaPlayer.controls = true;
+
+            //mediaPlayer.ontimeupdate = function () {
+            //    // syncVideo();
+            //
+            //    if (webSocket) {
+            //
+            //        var time = Math.floor(Date.now() / 33.0);
+            //
+            //        //console.log(time);
+            //
+            //        if (time % 100 == 0) {
+            //            console.log("updating...");
+            //
+            //            webSocket.send(mediaPlayer.currentTime);
+            //        }
+            //    }
+            //
+            //};
+
 
             //syncVideo();
 
@@ -37,9 +59,9 @@
                 webSocket = null;
             }
             webSocket.onmessage = function (evt) {
-                console.log("RESPONSE: " + evt.data);
+                //console.log("RESPONSE: " + evt.data);
                 latestTime = evt.data;
-                console.log(latestTime);
+                //console.log(latestTime);
                 mediaPlayer.currentTime = parseFloat(latestTime);
 
                 //syncVideo();
