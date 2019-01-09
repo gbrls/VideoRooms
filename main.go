@@ -34,24 +34,34 @@ func isAdmin(r *http.Request) bool {
 	return false
 }
 
-func main() {
-	data, err := ioutil.ReadFile("./html/index.gtpl")
+func loadTemplate(file string) *template.Template {
+	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	return template.Must(template.New("").Parse(string(data)))
+}
+
+func main() {
+
 	changed = make(chan int)
 	conn = 0
+	mainApp := newApp()
 
-	videoTmp := template.Must(template.New("").Parse(string(data)))
+	videoTmp := loadTemplate("./html/index.gtpl")
+	homeTmp := loadTemplate("./html/home.gtpl")
+	formTmp := loadTemplate("./html/form.gtpl")
+
 	ws := websocket.Upgrader{}
 
 	log.Println("Starting server...")
 
-	http.HandleFunc("/video", videoPlayer(videoTmp))
-	http.HandleFunc("/ws", wsHandler(&ws))
-	http.HandleFunc("/form", formHandler)
-	http.HandleFunc("/upload", upload)
+	http.HandleFunc("/r/", videoPlayer(videoTmp))
+	http.HandleFunc("/ws", wsHandler(&ws, mainApp))
+	http.HandleFunc("/form", formHandler(formTmp))
+	http.HandleFunc("/upload", upload(mainApp))
+	http.HandleFunc("/", homeHandler(homeTmp))
 
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))

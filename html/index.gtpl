@@ -49,7 +49,7 @@
                 return false;
             }
 
-            webSocket = new WebSocket("{{.}}");
+            webSocket = new WebSocket("{{.IP}}");
 
             webSocket.onopen = function (evt) {
                 console.log("OPEN");
@@ -111,14 +111,17 @@
         <h1>Test</h1>
 
         <div id='media-player'>
+
             <video id='media-video' width="800" controls>
-
-                <source src='/static/video.mp4' type='video/mp4'>
-
+                <source src='/static/{{.Video}}' type='video/mp4'>
+                <track label="Português" kind="subtitles" srclang="en" src="/static/{{.Sub}}" default>
             </video>
+
             <div id='media-controls'>
 
                 <button id='play-pause-button' class='play' title='play' onclick='syncVideo();'>Play</button>
+                <button id="subtitles" type="button" data-state="subtitles">CC</button>
+
 
             </div>
         </div>

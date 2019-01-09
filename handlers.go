@@ -10,16 +10,33 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type videoTmplFiller struct {
+	IP    string
+	Video string
+	Sub   string
+}
+
 func videoPlayer(tmp *template.Template) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		tmp.Execute(w, "ws://"+r.Host+"/ws")
+
+		roomPath := r.URL.Path[len("/r/"):]
+		fmt.Println(roomPath)
+
+		tmp.Execute(w, videoTmplFiller{
+			IP:    "ws://" + r.Host + "/ws",
+			Video: "filme.mp4",
+			Sub:   "sub.srt"})
 	}
 }
 
-func wsHandler(ws *websocket.Upgrader) func(http.ResponseWriter, *http.Request) {
+func wsHandler(ws *websocket.Upgrader, app *application) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		//roomPath := r.URL.Path[len("/ws/"):]
+		roomPath := r.URL.Path[:]
+		fmt.Println(roomPath)
+
 		c, err := ws.Upgrade(w, r, nil)
 		if err != nil {
 			log.Fatal(err)
@@ -78,15 +95,49 @@ func wsHandler(ws *websocket.Upgrader) func(http.ResponseWriter, *http.Request) 
 
 }
 
-func formHandler(w http.ResponseWriter, r *http.Request) {
+func formHandler(tmpl *template.Template) func(http.ResponseWriter, *http.Request) {
 
-	fmt.Fprintf(w, "This is a form")
+	return func(w http.ResponseWriter, r *http.Request) {
+		tmpl.Execute(w, nil)
+	}
 
 }
 
-func upload(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		fmt.Fprintf(w, "you shoudn't be here ;)")
+func upload(app *application) func(http.ResponseWriter, *http.Request) {
 
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Method != "POST" {
+			fmt.Fprintf(w, "you shoudn't be here ;)")
+
+			return
+		}
+
+		r.ParseMultipartForm(32 << 20)
+
+		//fmt.Fprintf(w, "%v", handler.Header)
+
+		err := saveFileToDisk(r, "video", "*.(mp4|mkv|ogg)")
+		if err != nil {
+			fmt.Fprintf(w, "%s", err)
+		}
 	}
+
+}
+
+func homeHandler(tmpl *template.Template) func(http.ResponseWriter, *http.Request) {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			fmt.Fprint(w, `<html>
+			ops, something went wrong
+			<a href="/">go back home.</a>
+			</html>`)
+
+			return
+		}
+
+		tmpl.Execute(w, nil)
+	}
+
 }
