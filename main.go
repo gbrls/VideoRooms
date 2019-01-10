@@ -57,11 +57,11 @@ func main() {
 
 	log.Println("Starting server...")
 
-	http.HandleFunc("/r/", videoPlayer(videoTmp))
+	http.HandleFunc("/r/", videoPlayer(videoTmp, mainApp))
 	http.HandleFunc("/ws", wsHandler(&ws, mainApp))
 	http.HandleFunc("/form", formHandler(formTmp))
 	http.HandleFunc("/upload", upload(mainApp))
-	http.HandleFunc("/", homeHandler(homeTmp))
+	http.HandleFunc("/", homeHandler(homeTmp, mainApp))
 
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))

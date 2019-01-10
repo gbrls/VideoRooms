@@ -16,16 +16,41 @@ type videoTmplFiller struct {
 	Sub   string
 }
 
-func videoPlayer(tmp *template.Template) func(http.ResponseWriter, *http.Request) {
+type homeTmplFiller struct {
+	Rooms []roomTmplFiller
+}
+
+type roomTmplFiller struct {
+	Index     int
+	Connected int
+	Name      string
+}
+
+func videoPlayer(tmp *template.Template, app *application) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		roomPath := r.URL.Path[len("/r/"):]
 		fmt.Println(roomPath)
 
+		if roomPath == "" {
+			roomPath = "0"
+		}
+
+		roomID, err := strconv.Atoi(roomPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		//TODO: handle this propelly with an error field
+		// in the html template.
+		if app.rooms[roomID] == nil {
+			roomID = 0
+		}
+
 		tmp.Execute(w, videoTmplFiller{
-			IP:    "ws://" + r.Host + "/ws",
-			Video: "filme.mp4",
+			IP:    "ws://" + r.Host + "/ws" + roomPath,
+			Video: app.rooms[roomID].videoName,
 			Sub:   "sub.srt"})
 	}
 }
@@ -33,8 +58,8 @@ func videoPlayer(tmp *template.Template) func(http.ResponseWriter, *http.Request
 func wsHandler(ws *websocket.Upgrader, app *application) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		//roomPath := r.URL.Path[len("/ws/"):]
-		roomPath := r.URL.Path[:]
+		roomPath := r.URL.Path[len("/ws/"):]
+		//roomPath := r.URL.Path[:]
 		fmt.Println(roomPath)
 
 		c, err := ws.Upgrade(w, r, nil)
@@ -117,15 +142,17 @@ func upload(app *application) func(http.ResponseWriter, *http.Request) {
 
 		//fmt.Fprintf(w, "%v", handler.Header)
 
-		err := saveFileToDisk(r, "video", "*.(mp4|mkv|ogg)")
+		filename, err := saveFileToDisk(r, "video", "*.(mp4|mkv|ogg)")
 		if err != nil {
 			fmt.Fprintf(w, "%s", err)
 		}
+
+		app.addRoom("", filename)
 	}
 
 }
 
-func homeHandler(tmpl *template.Template) func(http.ResponseWriter, *http.Request) {
+func homeHandler(tmpl *template.Template, app *application) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -137,7 +164,20 @@ func homeHandler(tmpl *template.Template) func(http.ResponseWriter, *http.Reques
 			return
 		}
 
-		tmpl.Execute(w, nil)
+		filler := homeTmplFiller{}
+		filler.Rooms = make([]roomTmplFiller, 0)
+
+		for i := 0; i < maxrooms; i++ {
+			if app.rooms[i] != nil {
+				filler.Rooms = append(filler.Rooms, roomTmplFiller{
+					Name:      app.rooms[i].videoName,
+					Connected: app.rooms[i].usersConnected,
+					Index:     i,
+				})
+			}
+		}
+
+		tmpl.Execute(w, filler)
 	}
 
 }
