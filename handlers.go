@@ -147,6 +147,8 @@ func upload(app *Application) func(http.ResponseWriter, *http.Request) {
 			fmt.Fprintf(w, "%s", err)
 		}
 
+		fmt.Printf("Recived file (%v)\n", filename)
+
 		app.addRoom("", filename)
 	}
 
