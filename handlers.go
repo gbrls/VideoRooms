@@ -26,7 +26,7 @@ type roomTmplFiller struct {
 	Name      string
 }
 
-func videoPlayer(tmp *template.Template, app *application) func(http.ResponseWriter, *http.Request) {
+func videoPlayer(tmp *template.Template, app *Application) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -55,7 +55,7 @@ func videoPlayer(tmp *template.Template, app *application) func(http.ResponseWri
 	}
 }
 
-func wsHandler(ws *websocket.Upgrader, app *application) func(http.ResponseWriter, *http.Request) {
+func wsHandler(ws *websocket.Upgrader, app *Application) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		roomPath := r.URL.Path[len("/ws/"):]
@@ -120,15 +120,15 @@ func wsHandler(ws *websocket.Upgrader, app *application) func(http.ResponseWrite
 
 }
 
-func formHandler(tmpl *template.Template) func(http.ResponseWriter, *http.Request) {
+func formHandler(tmpl *template.Template, app *Application) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		tmpl.Execute(w, nil)
+		tmpl.Execute(w, app)
 	}
 
 }
 
-func upload(app *application) func(http.ResponseWriter, *http.Request) {
+func upload(app *Application) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -152,7 +152,7 @@ func upload(app *application) func(http.ResponseWriter, *http.Request) {
 
 }
 
-func homeHandler(tmpl *template.Template, app *application) func(http.ResponseWriter, *http.Request) {
+func homeHandler(tmpl *template.Template, app *Application) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {

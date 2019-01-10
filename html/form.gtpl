@@ -5,7 +5,7 @@
 </head>
 
 <body>
-    <form enctype="multipart/form-data" action="http://localhost:8080/upload" method="post">
+    <form enctype="multipart/form-data" action="http://{{.Host}}:{{.Port}}/upload" method="post">
         <p> Video:
             <input type="file" name="video" />
         </p>

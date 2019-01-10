@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/websocket"
 )
@@ -45,9 +46,15 @@ func loadTemplate(file string) *template.Template {
 
 func main() {
 
+	f, err := os.Open("./cfg.yaml")
+	if err != nil {
+		log.Fatalf("didnt find cfg file (%s)", err)
+	}
+
+	mainApp := newApp(f)
+
 	changed = make(chan int)
 	conn = 0
-	mainApp := newApp()
 
 	videoTmp := loadTemplate("./html/index.gtpl")
 	homeTmp := loadTemplate("./html/home.gtpl")
@@ -59,7 +66,7 @@ func main() {
 
 	http.HandleFunc("/r/", videoPlayer(videoTmp, mainApp))
 	http.HandleFunc("/ws", wsHandler(&ws, mainApp))
-	http.HandleFunc("/form", formHandler(formTmp))
+	http.HandleFunc("/form", formHandler(formTmp, mainApp))
 	http.HandleFunc("/upload", upload(mainApp))
 	http.HandleFunc("/", homeHandler(homeTmp, mainApp))
 
