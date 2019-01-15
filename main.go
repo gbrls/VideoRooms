@@ -3,6 +3,7 @@ package main
 // Gabriel Schneider - 2019
 
 import (
+	"flag"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -20,7 +21,7 @@ var (
 )
 
 func isAdmin(r *http.Request) bool {
-	//TODO: implement this with hash maps.
+	//TODO: implement this from room struct.
 
 	chars := []rune(r.RemoteAddr)
 	if chars[0] == '[' {
@@ -46,7 +47,11 @@ func loadTemplate(file string) *template.Template {
 
 func main() {
 
-	f, err := os.Open("./cfg.yaml")
+	cfgFile := flag.String("cfg", "./cfg.yaml", "Path to the configuration file")
+
+	flag.Parse()
+
+	f, err := os.Open(*cfgFile)
 	if err != nil {
 		log.Fatalf("didnt find cfg file (%s)", err)
 	}
@@ -65,7 +70,7 @@ func main() {
 	log.Println("Starting server...")
 
 	http.HandleFunc("/r/", videoPlayer(videoTmp, mainApp))
-	http.HandleFunc("/ws", wsHandler(&ws, mainApp))
+	http.HandleFunc("/ws/", wsHandler(&ws, mainApp))
 	http.HandleFunc("/form", formHandler(formTmp, mainApp))
 	http.HandleFunc("/upload", upload(mainApp))
 	http.HandleFunc("/", homeHandler(homeTmp, mainApp))
@@ -73,5 +78,5 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":"+mainApp.Port, nil))
 }

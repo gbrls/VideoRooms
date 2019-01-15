@@ -31,7 +31,9 @@ func videoPlayer(tmp *template.Template, app *Application) func(http.ResponseWri
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		roomPath := r.URL.Path[len("/r/"):]
-		fmt.Println(roomPath)
+		//fmt.Println(roomPath)
+
+		fmt.Printf("%v connected to (%v)\n", r.RemoteAddr, roomPath)
 
 		if roomPath == "" {
 			roomPath = "0"
@@ -56,11 +58,15 @@ func videoPlayer(tmp *template.Template, app *Application) func(http.ResponseWri
 }
 
 func wsHandler(ws *websocket.Upgrader, app *Application) func(http.ResponseWriter, *http.Request) {
+	//TODO: this doesn't work with /ws/{} just /ws .
+	// So updating client's time for multiple rooms does
+	// not work propelly.
+
+	fmt.Println("Websocket connected")
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		roomPath := r.URL.Path[len("/ws/"):]
+		//roomPath := r.URL.Path[len("/ws/"):]
 		//roomPath := r.URL.Path[:]
-		fmt.Println(roomPath)
 
 		c, err := ws.Upgrade(w, r, nil)
 		if err != nil {
@@ -69,7 +75,7 @@ func wsHandler(ws *websocket.Upgrader, app *Application) func(http.ResponseWrite
 
 		defer c.Close()
 
-		log.Printf("Connected to (%v, %v) \n", r.RemoteAddr, r.UserAgent())
+		fmt.Printf("Connected to (%v, %v) \n", r.RemoteAddr, r.UserAgent())
 
 		conn++
 
@@ -147,9 +153,10 @@ func upload(app *Application) func(http.ResponseWriter, *http.Request) {
 			fmt.Fprintf(w, "%s", err)
 		}
 
-		fmt.Printf("Recived file (%v)\n", filename)
+		fmt.Printf("Recived file (%v) from (%v)\n", filename, r.RemoteAddr)
 
-		app.addRoom("", filename)
+		app.addRoom(r.RemoteAddr, filename)
+
 	}
 
 }

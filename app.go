@@ -55,5 +55,7 @@ func (app *Application) addRoom(admin string, video string) {
 		}
 	}
 
+	fmt.Printf("adding (%v) room, by (%s)\n", video, admin)
+
 	app.rooms[i] = newRoom(admin, video)
 }
